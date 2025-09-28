@@ -10,6 +10,7 @@
 //     return buffer;
 // }
 
+
 enum class methods_types : uint8_t {
     bisect,
     golden_ratio,
