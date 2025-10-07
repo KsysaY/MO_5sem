@@ -24,12 +24,18 @@
     <ClCompile Include="lr_1.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
+    <ClCompile Include="lr2.cpp">
+      <Filter>Исходные файлы</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="lr_1.h">
       <Filter>Исходные файлы</Filter>
     </ClInclude>
     <ClInclude Include="defines.h">
+      <Filter>Файлы заголовков</Filter>
+    </ClInclude>
+    <ClInclude Include="lr2.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
   </ItemGroup>
