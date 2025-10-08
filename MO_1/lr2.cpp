@@ -2,13 +2,13 @@
 
 std::ostream& operator<<(std::ostream& stream, const search_result_n& result) {
     switch (result.method) {
-    case methods_types::bisect:
+    case methods_types_n::bisect:
         stream << fstring("method: bisect\n");
         break;
-    case methods_types::golden_ratio:
+    case methods_types_n::golden_ratio:
         stream << fstring("method: golden_ratio\n");
         break;
-    case methods_types::fibonacci:
+    case methods_types_n::fibonacci:
         stream << fstring("method: fibonacci\n");
         break;
     default:
@@ -17,22 +17,39 @@ std::ostream& operator<<(std::ostream& stream, const search_result_n& result) {
     stream << fstring("iterations:     %ld\n", result.iterations);
     stream << fstring("function_calls: %ld\n", result.function_calls);
     stream << fstring("accuracy:       %.10f\n", result.accuracy);
-    stream << fstring("result:         %.10f\n", result.result);
+
+    stream << "result: ";
+    stream << "[";
+    for (size_t i = 0; i < result.result.size(); ++i) {
+        stream << std::setprecision(10) << result.result[i];
+        if (i < result.result.size() - 1) {
+            stream << ", ";
+        }
+    }
+    stream << "]\n";
+
     return stream;
 }
 
-//static void bisect(function_nd function, const numerics::vector_f64& left, const numerics::vector_f64& right, const F64 eps, const I32 max_iterations)
-//{
-//    result.clear();
-//    result.type = search_method_type_nd::bisection;
-//    numerics::vector_f64 dir, lhs(left), rhs(right);
-//    dir = numerics::vector_f64::direction(lhs, rhs) * eps;
-//    for (; result.iterations != max_iterations && (result.accuracy = numerics::vector_f64::distance(lhs, rhs)) > 2 * eps; result.iterations++, result.function_probes += 2)
-//    {
-//        result.result = (lhs + rhs) * 0.5;
-//        if (function(result.result - dir) > function(result.result + dir))
-//            lhs = result.result;
-//        else
-//            rhs = result.result;
-//    }
-//}
+search_result_n bisect(function_nd function, const numerics::vector_f64& left, const numerics::vector_f64& right, const F64 eps, const I32 max_iterations)
+{
+    numerics::vector_f64 dir, lhs(left), rhs(right);
+    dir = numerics::vector_f64::direction(lhs, rhs) * eps;
+    UI64 iterations = 0;
+    UI64 function_iter = 0;
+    numerics::vector_f64 result;
+
+    for (; iterations != max_iterations && (numerics::vector_f64::distance(lhs, rhs)) > 2 * eps; iterations++)
+    {
+        result = (lhs + rhs) * 0.5;
+        function_iter += 2;
+        if (function(result - dir) > function(result + dir))
+            lhs = result;
+        else
+            rhs = result;
+    }
+
+    numerics::vector_f64 final_result = (lhs + rhs) * 0.5;
+    F64 final_accuracy = numerics::vector_f64::distance(lhs, rhs);
+    return search_result_n(methods_types_n::bisect, iterations, function_iter, final_accuracy, final_result);
+}
