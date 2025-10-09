@@ -5,7 +5,8 @@
 enum class methods_types_n : uint8_t {
     bisect,
     golden_ratio,
-    fibonacci
+    fibonacci,
+    per_coordinate_descend
 };
 
 struct search_result_n {
@@ -27,3 +28,5 @@ struct search_result_n {
 };
 
 search_result_n bisect(function_nd func, const numerics::vector_f64& lhs, const numerics::vector_f64& rhs, const F64 eps = ACCURACY_MIDDLE, const I32 max_iterations = MAX_ITERATIONS);
+search_result_n golden_ratio(function_nd func, const numerics::vector_f64& lhs, const numerics::vector_f64& rhs, const F64 eps = ACCURACY_MIDDLE, const I32 max_iterations = MAX_ITERATIONS);
+search_result_n fibonacci(function_nd func, const numerics::vector_f64& lhs, const numerics::vector_f64& rhs, const F64 eps = ACCURACY_MIDDLE);

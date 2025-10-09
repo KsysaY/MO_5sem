@@ -35,6 +35,12 @@ int lab2() {
     search_result_n bisect_result = bisect(my_function, left, right, eps, max_iters);
     std::cout << "Bisect Result:\n" << bisect_result << std::endl;
 
+    search_result_n golden_ratio_result = golden_ratio(my_function, left, right, eps, max_iters);
+    std::cout << "Golden Ratio Result:\n" << golden_ratio_result << std::endl;
+
+    search_result_n fibonacci_result = fibonacci(my_function, left, right, eps);
+    std::cout << "Fibonacci Result:\n" << fibonacci_result << std::endl;
+
     return 0;
 }
 
