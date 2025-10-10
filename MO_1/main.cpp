@@ -41,6 +41,9 @@ int lab2() {
     search_result_n fibonacci_result = fibonacci(my_function, left, right, eps);
     std::cout << "Fibonacci Result:\n" << fibonacci_result << std::endl;
 
+    search_result_n per_coord_descend_result = per_coord_descend(my_function, left, eps, max_iters);
+    std::cout << "Per Coord Descend Result:\n" << per_coord_descend_result << std::endl;
+
     return 0;
 }
 
