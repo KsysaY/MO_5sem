@@ -142,37 +142,64 @@ search_result_n fibonacci(function_nd function, const numerics::vector_f64& left
 search_result_n per_coord_descend(function_nd function, const numerics::vector_f64& x_start, const F64 eps, const I32 max_iters)
 {
     UI64 total_probes = 0;
-    numerics::vector_f64 x_0(x_start);
-    numerics::vector_f64 x_1(x_start);
-    numerics::vector_f64 result;
+    numerics::vector_f64 x_current(x_start);
     F64 step = 1.0;
-    F64 x_i, y_1, y_0;
-    I32 opt_coord_n = 0, coord_id;
+    I32 opt_coord_n = 0;
     UI64 iterations;
+    numerics::vector_f64 x_prev = x_start;
+
     for (iterations = 0; iterations < max_iters; ++iterations)
     {
-        coord_id = iterations % x_0.size();
-        x_1[coord_id] -= eps;
-        y_0 = function(x_1);
-        x_1[coord_id] += 2.0 * eps;
-        y_1 = function(x_1);
-        x_1[coord_id] -= eps;
-        x_1[coord_id] = y_0 > y_1 ? x_1[coord_id] += step : x_1[coord_id] -= step;
-        x_i = x_0[coord_id];
-        search_result_n result = fibonacci(function, x_0, x_1, eps);
-        x_0 = result.result;
-        total_probes += result.function_calls + 2;
-        if (std::abs(x_1[coord_id] - x_i) < 2 * eps)
+        I32 coord_id = iterations % x_current.size();
+        F64 original_value = x_current[coord_id];
+
+        numerics::vector_f64 x_left = x_current;
+        numerics::vector_f64 x_right = x_current;
+        x_left[coord_id] -= eps;
+        x_right[coord_id] += eps;
+
+        F64 f_left = function(x_left);
+        F64 f_right = function(x_right);
+        total_probes += 2;
+
+        F64 search_direction;
+        if (f_left > f_right) {
+            search_direction = step; 
+        }
+        else {
+            search_direction = -step; 
+        }
+
+        auto line_function = [&](F64 t) -> F64 {
+            numerics::vector_f64 point = x_current;
+            point[coord_id] = t;
+            return function(point);
+            };
+
+        F64 line_start = x_current[coord_id];
+        F64 line_end = x_current[coord_id] + search_direction;
+
+        search_result line_search_result = ::fibonacci(line_function, line_start, line_end, eps);
+        total_probes += line_search_result.function_calls;
+
+        x_prev = x_current;
+
+        x_current[coord_id] = line_search_result.result;
+
+        if (std::abs(x_current[coord_id] - original_value) < 2 * eps)
         {
             opt_coord_n++;
-            if (opt_coord_n == x_1.size())
+            if (opt_coord_n == x_current.size())
             {
                 break;
             }
-            continue;
         }
-        opt_coord_n = 0;
+        else
+        {
+            opt_coord_n = 0;
+        }
     }
 
-    return search_result_n(methods_types_n::per_coordinate_descend, iterations, total_probes, , x_0);
+    F64 accuracy = numerics::vector_f64::distance(x_current, x_prev);
+    return search_result_n(methods_types_n::per_coordinate_descend, iterations, total_probes, accuracy, x_current);
 }
