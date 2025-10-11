@@ -19,15 +19,15 @@ struct search_result_n {
     const numerics::vector_f64 result;
 
     search_result_n(methods_types_n m, UI64 iters, UI64 calls, F64 acc, numerics::vector_f64& res)
-        :method(m)
-        , iterations(iters)
-        , function_calls(calls)
-        , accuracy(acc)
-        , result(res)
+        :method        (    m)
+        ,iterations    (iters)
+        ,function_calls(calls)
+        ,accuracy      (  acc)
+        ,result        (  res)
     {}
 };
 
-search_result_n bisect(function_nd func, const numerics::vector_f64& lhs, const numerics::vector_f64& rhs, const F64 eps = ACCURACY_MIDDLE, const I32 max_iterations = MAX_ITERATIONS);
-search_result_n golden_ratio(function_nd func, const numerics::vector_f64& lhs, const numerics::vector_f64& rhs, const F64 eps = ACCURACY_MIDDLE, const I32 max_iterations = MAX_ITERATIONS);
-search_result_n fibonacci(function_nd func, const numerics::vector_f64& lhs, const numerics::vector_f64& rhs, const F64 eps = ACCURACY_MIDDLE);
+search_result_n bisect           (function_nd func, const numerics::vector_f64& lhs, const numerics::vector_f64& rhs, const F64 eps = ACCURACY_MIDDLE, const I32 max_iterations = MAX_ITERATIONS);
+search_result_n golden_ratio     (function_nd func, const numerics::vector_f64& lhs, const numerics::vector_f64& rhs, const F64 eps = ACCURACY_MIDDLE, const I32 max_iterations = MAX_ITERATIONS);
+search_result_n fibonacci        (function_nd func, const numerics::vector_f64& lhs, const numerics::vector_f64& rhs, const F64 eps = ACCURACY_MIDDLE);
 search_result_n per_coord_descend(function_nd func, const numerics::vector_f64& lhs, const F64 eps = ACCURACY_MIDDLE, const I32 max_iterations = MAX_ITERATIONS);
