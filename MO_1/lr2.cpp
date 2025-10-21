@@ -20,7 +20,7 @@ std::ostream& operator<<(std::ostream& stream, const search_result_n& result) {
     }
     stream << fstring("iterations:     %ld\n", result.iterations);
     stream << fstring("function_calls: %ld\n", result.function_calls);
-    stream << fstring("accuracy:       %.10f\n", result.accuracy);
+    stream << fstring("accuracy:       %10.4e\n", result.accuracy);
 
     stream << "result: ";
     stream << "[";
@@ -37,8 +37,8 @@ std::ostream& operator<<(std::ostream& stream, const search_result_n& result) {
 
 search_result_n bisect(function_nd function, const numerics::vector_f64& left, const numerics::vector_f64& right, const F64 eps, const I32 max_iterations)
 {
-    numerics::vector_f64 dir, lhs(left), rhs(right);
-    dir = numerics::vector_f64::direction(lhs, rhs) * eps;
+    numerics::vector_f64 dir(numerics::vector_f64::direction(left, right) *= eps), lhs(left), rhs(right);
+    
     UI64 iterations = 0;
     UI64 function_iter = 0;
     numerics::vector_f64 result;
@@ -53,9 +53,13 @@ search_result_n bisect(function_nd function, const numerics::vector_f64& left, c
             rhs = result;
     }
 
-    numerics::vector_f64 final_result = (lhs + rhs) * 0.5;
-    F64 final_accuracy = numerics::vector_f64::distance(lhs, rhs);
-    return search_result_n(methods_types_n::bisect, iterations, function_iter, final_accuracy, final_result);
+    // numerics::vector_f64 final_result = (lhs + rhs) * 0.5;
+    return search_result_n(
+        methods_types_n::bisect,                  //
+        iterations, 
+        function_iter,                            //
+        numerics::vector_f64::distance(lhs, rhs), //
+        std::move(result));                                  //
 }
 
 search_result_n golden_ratio(function_nd function, const numerics::vector_f64& left, const numerics::vector_f64& right, const F64 eps, const I32 max_iterations) 
@@ -87,9 +91,16 @@ search_result_n golden_ratio(function_nd function, const numerics::vector_f64& l
         }
     }
 
-    numerics::vector_f64 final_result = (lhs + rhs) * 0.5;
-    F64 final_accuracy = numerics::vector_f64::distance(lhs, rhs);
-    return search_result_n(methods_types_n::golden_ratio, iterations, function_iter, final_accuracy, final_result);
+    // numerics::vector_f64 final_result = (lhs + rhs) * 0.5;
+    // F64 final_accuracy = numerics::vector_f64::distance(lhs, rhs);
+    // return search_result_n(methods_types_n::golden_ratio, iterations, function_iter, final_accuracy, final_result);
+    return search_result_n(
+        methods_types_n::golden_ratio,           //
+        iterations,                              //
+        function_iter,                           //
+        numerics::vector_f64::distance(lhs, rhs),//
+        (lhs + rhs) * 0.5);                      //
+
 }
 
 search_result_n fibonacci(function_nd function, const numerics::vector_f64& left, const numerics::vector_f64& right, const F64 eps)
@@ -98,15 +109,14 @@ search_result_n fibonacci(function_nd function, const numerics::vector_f64& left
     F64 condition = numerics::vector_f64::distance(lhs, rhs) / eps;
     F64 fib_t{ 0.0 }, fib_1{ 1.0 }, fib_2{ 1.0 };
     UI64 iterations = 0;
-    UI64 function_iter = 2;
     while (fib_2 < condition)
     {
         fib_t = fib_1;
         fib_1 = fib_2;
         fib_2 += fib_t;
         iterations++;
-        function_iter++;
     }
+    const UI64 function_iter = iterations+2;
     numerics::vector_f64 x_l = lhs + (rhs - lhs) * ((fib_2 - fib_1) / fib_2);
     numerics::vector_f64 x_r = lhs + (rhs - lhs) * (fib_1 / fib_2);
     F64 f_l = function(x_l);
@@ -134,72 +144,51 @@ search_result_n fibonacci(function_nd function, const numerics::vector_f64& left
         }
     }
 
-    numerics::vector_f64 final_result = (lhs + rhs) * 0.5;
-    F64 final_accuracy = numerics::vector_f64::distance(lhs, rhs);
-    return search_result_n(methods_types_n::fibonacci, iterations, function_iter, final_accuracy, final_result);
+    return search_result_n(
+        methods_types_n::fibonacci,              // 
+        iterations,                              // 
+        function_iter,                           // 
+        numerics::vector_f64::distance(lhs, rhs),// 
+        (lhs + rhs) * 0.5);                      // 
 }
 
 search_result_n per_coord_descend(function_nd function, const numerics::vector_f64& x_start, const F64 eps, const I32 max_iters)
 {
     UI64 total_probes = 0;
-    numerics::vector_f64 x_current(x_start);
     F64 step = 1.0;
     I32 opt_coord_n = 0;
     UI64 iterations;
-    numerics::vector_f64 x_prev = x_start;
+    numerics::vector_f64 x_curr(x_start), x_next(x_start);
+    F64 accuracy = std::numeric_limits<double>::infinity();
 
     for (iterations = 0; iterations < max_iters; ++iterations)
     {
-        I32 coord_id = iterations % x_current.size();
-        F64 original_value = x_current[coord_id];
+        I32 coord_id = iterations % x_curr.size();
+        F64 original_value = x_curr[coord_id];
 
-        numerics::vector_f64 x_left = x_current;
-        numerics::vector_f64 x_right = x_current;
-        x_left[coord_id] -= eps;
-        x_right[coord_id] += eps;
-
-        F64 f_left = function(x_left);
-        F64 f_right = function(x_right);
+        x_curr[coord_id] -= eps;
+        const F64 f_left = function(x_curr);
+        x_curr[coord_id] += 2 * eps;
+        const F64 f_right = function(x_curr);
+        x_curr[coord_id] = original_value;
         total_probes += 2;
 
-        F64 search_direction;
-        if (f_left > f_right) {
-            search_direction = step; 
-        }
-        else {
-            search_direction = -step; 
-        }
+        const F64 search_direction(f_left > f_right ? step : -step);
+        x_next[coord_id] = x_curr[coord_id] + search_direction;
 
-        auto line_function = [&](F64 t) -> F64 {
-            numerics::vector_f64 point = x_current;
-            point[coord_id] = t;
-            return function(point);
-            };
-
-        F64 line_start = x_current[coord_id];
-        F64 line_end = x_current[coord_id] + search_direction;
-
-        search_result line_search_result = ::fibonacci(line_function, line_start, line_end, eps);
+        search_result_n line_search_result = fibonacci(function, x_curr, x_next, eps);
+        accuracy = std::min(accuracy, line_search_result.accuracy);
         total_probes += line_search_result.function_calls;
 
-        x_prev = x_current;
+        numerics::vector_f64 x_prev = x_curr;
+        x_curr = line_search_result.result;
+        x_next = x_curr;
 
-        x_current[coord_id] = line_search_result.result;
-
-        if (std::abs(x_current[coord_id] - original_value) < 2 * eps)
+        if (numerics::vector_f64::distance(x_curr, x_prev) < 2 * eps)
         {
-            opt_coord_n++;
-            if (opt_coord_n == x_current.size())
-            {
-                break;
-            }
-        }
-        else
-        {
-            opt_coord_n = 0;
+            break;
         }
     }
 
-    F64 accuracy = numerics::vector_f64::distance(x_current, x_prev);
-    return search_result_n(methods_types_n::per_coordinate_descend, iterations, total_probes, accuracy, x_current);
+    return search_result_n(methods_types_n::per_coordinate_descend, iterations, total_probes, accuracy, std::move(x_curr));
 }

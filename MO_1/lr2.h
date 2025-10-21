@@ -18,12 +18,12 @@ struct search_result_n {
     const F64 accuracy;
     const numerics::vector_f64 result;
 
-    search_result_n(methods_types_n m, UI64 iters, UI64 calls, F64 acc, numerics::vector_f64& res)
+    search_result_n(methods_types_n m, UI64 iters, UI64 calls, F64 acc, numerics::vector_f64&& res)
         :method        (    m)
         ,iterations    (iters)
         ,function_calls(calls)
         ,accuracy      (  acc)
-        ,result        (  res)
+        ,result        (  std::move(res))
     {}
 };
 
