@@ -3,7 +3,7 @@
 #include <iostream>
 
 int lab1() {
-    function_1d my_function = [](double x) { return (x - 1) * (x - 3); };
+    function_1d my_function = [](double x) { return (x - 1) * (x - 2); };
     double left = 0.0;
     double right = 3.0;
     double eps = 1e-6;

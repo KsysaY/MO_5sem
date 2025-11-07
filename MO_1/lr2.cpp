@@ -1,5 +1,16 @@
 ﻿#include "lr2.h"
 #include "lr_1.h"
+#include "numerics/linalg/numeric_vector.h"
+
+search_result_n::search_result_n(methods_types_n m, UI64 iters, UI64 calls, F64 acc, numerics::vector_f64&& res)
+    :method(m)
+    , iterations(iters)
+    , function_calls(calls)
+    , accuracy(acc)
+    , result(std::move(res))
+{
+}
+
 
 std::ostream& operator<<(std::ostream& stream, const search_result_n& result) {
     switch (result.method) {
@@ -55,11 +66,11 @@ search_result_n bisect(function_nd function, const numerics::vector_f64& left, c
 
     // numerics::vector_f64 final_result = (lhs + rhs) * 0.5;
     return search_result_n(
-        methods_types_n::bisect,                  //
-        iterations, 
-        function_iter,                            //
-        numerics::vector_f64::distance(lhs, rhs), //
-        std::move(result));                                  //
+        methods_types_n::bisect,                 //
+        iterations,                              // 
+        function_iter,                           //
+        numerics::vector_f64::distance(lhs, rhs),//
+        std::move(result));                      //
 }
 
 search_result_n golden_ratio(function_nd function, const numerics::vector_f64& left, const numerics::vector_f64& right, const F64 eps, const I32 max_iterations) 
@@ -91,9 +102,6 @@ search_result_n golden_ratio(function_nd function, const numerics::vector_f64& l
         }
     }
 
-    // numerics::vector_f64 final_result = (lhs + rhs) * 0.5;
-    // F64 final_accuracy = numerics::vector_f64::distance(lhs, rhs);
-    // return search_result_n(methods_types_n::golden_ratio, iterations, function_iter, final_accuracy, final_result);
     return search_result_n(
         methods_types_n::golden_ratio,           //
         iterations,                              //
@@ -145,11 +153,11 @@ search_result_n fibonacci(function_nd function, const numerics::vector_f64& left
     }
 
     return search_result_n(
-        methods_types_n::fibonacci,              // 
-        iterations,                              // 
-        function_iter,                           // 
-        numerics::vector_f64::distance(lhs, rhs),// 
-        (lhs + rhs) * 0.5);                      // 
+        methods_types_n::fibonacci,              // Вызываемый метод
+        iterations,                              // Количество итераций
+        function_iter,                           // Количество вызовов функции
+        numerics::vector_f64::distance(lhs, rhs),// Точность
+        (lhs + rhs) * 0.5);                      // Экстремум
 }
 
 search_result_n per_coord_descend(function_nd function, const numerics::vector_f64& x_start, const F64 eps, const I32 max_iters)
@@ -186,9 +194,18 @@ search_result_n per_coord_descend(function_nd function, const numerics::vector_f
 
         if (numerics::vector_f64::distance(x_curr, x_prev) < 2 * eps)
         {
-            break;
+            ++opt_coord_n;
+            if (opt_coord_n == x_curr.size())
+                break;
         }
+        else
+            opt_coord_n = 0;
     }
 
-    return search_result_n(methods_types_n::per_coordinate_descend, iterations, total_probes, accuracy, std::move(x_curr));
+    return search_result_n(
+        methods_types_n::per_coordinate_descend,// Вызываемый метод 
+        iterations,                             // Количество итераций
+        total_probes,                           // Количество вызовов функции
+        accuracy,                               // Точность
+        std::move(x_curr));                     // Экстремум
 }

@@ -147,10 +147,12 @@ template<typename T>
 inline T numeric_vector_<T>::distance(const numeric_vector_<T>& lhs, const numeric_vector_<T>& rhs)
 {
 	T accum{ 0 };
-	for (size_t i = 0; i < lhs.size(); ++i) {
-		T diff = lhs[i] - rhs[i];
-		accum += diff * diff;
-	}
+	// for (size_t i = 0; i < lhs.size(); ++i) {
+	// 	T diff = lhs[i] - rhs[i];
+	// 	accum += diff * diff;
+	// }
+	for (const auto&[l, r] : template_vector_<T>::template zip<T>(lhs, rhs))
+		accum += (l - r) * (l - r);
 	return std::sqrt(accum);
 }
 

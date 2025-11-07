@@ -1,6 +1,10 @@
 #pragma once
 #include "defines.h"
-#include "numerics/numerics.h"
+// #include "numerics/numerics.h"
+
+namespace {
+    class vector_f64;
+}
 
 enum class methods_types_n : uint8_t {
     bisect,
@@ -18,13 +22,13 @@ struct search_result_n {
     const F64 accuracy;
     const numerics::vector_f64 result;
 
-    search_result_n(methods_types_n m, UI64 iters, UI64 calls, F64 acc, numerics::vector_f64&& res)
-        :method        (    m)
-        ,iterations    (iters)
-        ,function_calls(calls)
-        ,accuracy      (  acc)
-        ,result        (  std::move(res))
-    {}
+    search_result_n(methods_types_n m, UI64 iters, UI64 calls, F64 acc, numerics::vector_f64&& res);
+    //     :method        (    m)
+    //     ,iterations    (iters)
+    //     ,function_calls(calls)
+    //     ,accuracy      (  acc)
+    //     ,result        (  std::move(res))
+    // {}
 };
 
 search_result_n bisect           (function_nd func, const numerics::vector_f64& lhs, const numerics::vector_f64& rhs, const F64 eps = ACCURACY_MIDDLE, const I32 max_iterations = MAX_ITERATIONS);
