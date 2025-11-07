@@ -26,6 +26,9 @@ std::ostream& operator<<(std::ostream& stream, const search_result_n& result) {
     case methods_types_n::per_coordinate_descend:
         stream << fstring("method: per_coordinate_descend\n");
         break;
+    case methods_types_n::gradient_descend:
+        stream << fstring("method: gradient_descend\n");
+        break;
     default:
         stream << fstring("method: Unknown\n");
     }
@@ -208,4 +211,35 @@ search_result_n per_coord_descend(function_nd function, const numerics::vector_f
         total_probes,                           // Количество вызовов функции
         accuracy,                               // Точность
         std::move(x_curr));                     // Экстремум
+}
+
+search_result_n gradient_descend(function_nd function, const numerics::vector_f64& x_start, const F64 eps, const I32 max_iters) {
+    numerics::vector_f64 x_i(x_start), x_i_1, gradient;
+    F64 step = 1.0;
+    UI64 iterations = 0;
+    UI64 total_probes = 0;
+    F64 accuracy = std::numeric_limits<double>::infinity();
+
+    for (; iterations <= max_iters; iterations++) {
+        gradient = numerics::vector_f64::gradient(function, x_i, eps);
+        x_i_1 = x_i - step * gradient;
+        total_probes += 2 * x_i.size();
+
+        search_result_n line_search_result = fibonacci(function, x_i, x_i_1, eps);
+        accuracy = std::min(accuracy, line_search_result.accuracy);
+        total_probes += line_search_result.function_calls;
+
+        x_i_1 = line_search_result.result;
+
+        if (numerics::vector_f64::distance(x_i_1, x_i) < 2 * eps) 
+            break;
+
+        x_i = x_i_1;
+    }
+    return search_result_n(
+        methods_types_n::gradient_descend,      // Вызываемый метод 
+        iterations,                             // Количество итераций
+        total_probes,                           // Количество вызовов функции
+        accuracy,                               // Точность
+        std::move(x_i_1));                      // Экстремум
 }

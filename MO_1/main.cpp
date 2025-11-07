@@ -47,9 +47,26 @@ int lab2() {
     return 0;
 }
 
+int lab3() {
+    function_nd my_function = [](const numerics::vector_f64& args) -> double {
+        return (args[0] - 5) * args[0] + (args[1] - 3) * args[1];
+        };
+    numerics::vector_f64 left = { 0,0 };
+    numerics::vector_f64 right = { 5,3 };
+    double eps = 1e-6;
+    int max_iters = 100;
+
+
+    search_result_n gradient_result = gradient_descend(my_function, left, eps, max_iters);
+    std::cout << "Gradient Descend Result:\n" << gradient_result << std::endl;
+
+    return 0;
+}
+
 int main()
 {
     //lab1();
     lab2();
+    lab3();
     return 0;
 }
