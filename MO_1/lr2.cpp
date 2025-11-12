@@ -29,6 +29,9 @@ std::ostream& operator<<(std::ostream& stream, const search_result_n& result) {
     case methods_types_n::gradient_descend:
         stream << fstring("method: gradient_descend\n");
         break;
+    case methods_types_n::conj_gradient_descend:
+        stream << fstring("method: conj_gradient_descend\n");
+        break;
     default:
         stream << fstring("method: Unknown\n");
     }
@@ -231,13 +234,51 @@ search_result_n gradient_descend(function_nd function, const numerics::vector_f6
 
         x_i_1 = line_search_result.result;
 
-        if (numerics::vector_f64::distance(x_i_1, x_i) < 2 * eps) 
+        if (numerics::vector_f64::distance(x_i_1, x_i) < 2 * eps)
             break;
 
         x_i = x_i_1;
     }
     return search_result_n(
         methods_types_n::gradient_descend,      // Вызываемый метод 
+        iterations,                             // Количество итераций
+        total_probes,                           // Количество вызовов функции
+        accuracy,                               // Точность
+        std::move(x_i_1));                      // Экстремум
+}
+
+search_result_n conj_gradient_descend(function_nd function, const numerics::vector_f64& x_start, const F64 eps, const I32 max_iters) {
+    numerics::vector_f64 x_i(x_start), x_i_1;
+    numerics::vector_f64 gradient = numerics::vector_f64::gradient(function, x_i, eps);
+    numerics::vector_f64 gradient_old = (- 1.0) * gradient, gradient_new;
+    F64 w;
+    F64 step = 1.0;
+    UI64 iterations = 0;
+    UI64 total_probes = 2 * x_i.size();
+    F64 accuracy = std::numeric_limits<double>::infinity();
+
+    for (; iterations <= max_iters; iterations++) {
+        x_i_1 = x_i + step * gradient_old;
+
+        search_result_n line_search_result = fibonacci(function, x_i, x_i_1, eps);
+        accuracy = std::min(accuracy, line_search_result.accuracy);
+        total_probes += line_search_result.function_calls;
+
+        x_i_1 = line_search_result.result;
+        gradient_new = numerics::vector_f64::gradient(function, x_i_1, eps);
+        total_probes += 2 * x_i.size();
+
+        w = std::pow(gradient_new.magnitude(), 2) / std::pow(gradient_old.magnitude(), 2);
+        gradient_old = gradient_old * w - gradient_new;
+
+        if (numerics::vector_f64::distance(x_i_1, x_i) < 2 * eps) 
+            break;
+   
+        x_i = x_i_1;
+        gradient_old = gradient_new;
+    }
+    return search_result_n(
+        methods_types_n::conj_gradient_descend, // Вызываемый метод 
         iterations,                             // Количество итераций
         total_probes,                           // Количество вызовов функции
         accuracy,                               // Точность

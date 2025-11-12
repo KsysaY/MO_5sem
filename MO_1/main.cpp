@@ -56,9 +56,11 @@ int lab3() {
     double eps = 1e-6;
     int max_iters = 100;
 
-
     search_result_n gradient_result = gradient_descend(my_function, left, eps, max_iters);
     std::cout << "Gradient Descend Result:\n" << gradient_result << std::endl;
+
+    search_result_n conj_gradient_result = conj_gradient_descend(my_function, left, eps, max_iters);
+    std::cout << "Conjugate Gradient Result:\n" << conj_gradient_result << std::endl;
 
     return 0;
 }
