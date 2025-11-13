@@ -12,7 +12,8 @@ enum class methods_types_n : uint8_t {
     fibonacci,
     per_coordinate_descend,
     gradient_descend,
-    conj_gradient_descend
+    conj_gradient_descend,
+    newton_raphson
 };
 
 struct search_result_n {
@@ -39,3 +40,4 @@ search_result_n fibonacci            (function_nd func, const numerics::vector_f
 search_result_n per_coord_descend    (function_nd func, const numerics::vector_f64& lhs, const F64 eps = ACCURACY_MIDDLE, const I32 max_iterations = MAX_ITERATIONS);
 search_result_n gradient_descend     (function_nd func, const numerics::vector_f64& lhs, const F64 eps = ACCURACY_MIDDLE, const I32 max_iterations = MAX_ITERATIONS);
 search_result_n conj_gradient_descend(function_nd func, const numerics::vector_f64& lhs, const F64 eps = ACCURACY_MIDDLE, const I32 max_iterations = MAX_ITERATIONS);
+search_result_n newton_raphson       (function_nd func, const numerics::vector_f64& lhs, const F64 eps = ACCURACY_MIDDLE, const I32 max_iterations = MAX_ITERATIONS);

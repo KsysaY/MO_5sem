@@ -15,22 +15,25 @@ search_result_n::search_result_n(methods_types_n m, UI64 iters, UI64 calls, F64 
 std::ostream& operator<<(std::ostream& stream, const search_result_n& result) {
     switch (result.method) {
     case methods_types_n::bisect:
-        stream << fstring("method: bisect\n");
+        stream << fstring(                "method: bisect\n");
         break;
     case methods_types_n::golden_ratio:
-        stream << fstring("method: golden_ratio\n");
+        stream << fstring(          "method: golden_ratio\n");
         break;
     case methods_types_n::fibonacci:
-        stream << fstring("method: fibonacci\n");
+        stream << fstring(             "method: fibonacci\n");
         break;
     case methods_types_n::per_coordinate_descend:
         stream << fstring("method: per_coordinate_descend\n");
         break;
     case methods_types_n::gradient_descend:
-        stream << fstring("method: gradient_descend\n");
+        stream << fstring(      "method: gradient_descend\n");
         break;
     case methods_types_n::conj_gradient_descend:
-        stream << fstring("method: conj_gradient_descend\n");
+        stream << fstring( "method: conj_gradient_descend\n");
+        break;
+    case methods_types_n::newton_raphson:
+        stream << fstring(        "method: newton_raphson\n");
         break;
     default:
         stream << fstring("method: Unknown\n");
@@ -283,4 +286,31 @@ search_result_n conj_gradient_descend(function_nd function, const numerics::vect
         total_probes,                           // Количество вызовов функции
         accuracy,                               // Точность
         std::move(x_i_1));                      // Экстремум
+}
+
+search_result_n newton_raphson(function_nd function, const numerics::vector_f64& x_start, const F64 eps, const I32 max_iters) {
+    numerics::vector_f64 x_i(x_start), x_i_1, gradient;
+    numerics::matrix_f64 hessian, hessian_1;
+    F64 step = 1.0;
+    UI64 iterations = 0;
+    UI64 total_probes = 0;
+
+    for (; iterations <= max_iters; iterations++) {
+        gradient = numerics::vector_f64::gradient(function, x_i, eps);
+        hessian = numerics::matrix_f64::hessian(function, x_i, eps);
+        hessian_1 = numerics::matrix_f64::invert(hessian);
+        x_i_1 = x_i - hessian_1 * gradient;
+        total_probes += 2 * x_i.size() + x_i.size() * x_i.size();
+
+        if (numerics::vector_f64::distance(x_i_1, x_i) < 2 * eps)
+            break;
+
+        x_i = x_i_1;
+    }
+    return search_result_n(                         
+        methods_types_n::newton_raphson,            // Вызываемый метод 
+        iterations,                                 // Количество итераций
+        total_probes,                               // Количество вызовов функции
+        numerics::vector_f64::distance(x_i, x_i_1), // Точность
+        std::move(x_i_1));                          // Экстремум
 }

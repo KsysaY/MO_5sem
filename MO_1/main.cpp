@@ -62,6 +62,9 @@ int lab3() {
     search_result_n conj_gradient_result = conj_gradient_descend(my_function, left, eps, max_iters);
     std::cout << "Conjugate Gradient Result:\n" << conj_gradient_result << std::endl;
 
+    search_result_n newton_raphson_result = newton_raphson(my_function, left, eps, max_iters);
+    std::cout << "Newton Raphson Result:\n" << newton_raphson_result << std::endl;
+    
     return 0;
 }
 
