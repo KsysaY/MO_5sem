@@ -35,6 +35,12 @@ std::ostream& operator<<(std::ostream& stream, const search_result_n& result) {
     case methods_types_n::newton_raphson:
         stream << fstring(        "method: newton_raphson\n");
         break;
+    case methods_types_n::internal_penalty:
+        stream << fstring(      "method: internal_penalty\n");
+        break;
+    case methods_types_n::external_penalty:
+        stream << fstring(      "method: external_penalty\n");
+        break;
     default:
         stream << fstring("method: Unknown\n");
     }
@@ -312,5 +318,49 @@ search_result_n newton_raphson(function_nd function, const numerics::vector_f64&
         iterations,                                 // Количество итераций
         total_probes,                               // Количество вызовов функции
         numerics::vector_f64::distance(x_i, x_i_1), // Точность
+        std::move(x_i_1));                          // Экстремум
+}
+
+search_result_n internal_penalty(function_nd function, const std::vector<function_nd>& constraints, const numerics::vector_f64& x_start, const F64 eps, const I32 max_iters) {
+    numerics::vector_f64 x_i(x_start), x_i_1, gradient, search_point;
+    F64 step = 1.0; 
+    UI64 iterations = 0;
+    UI64 total_probes = 0;
+
+    for (; iterations < max_iters; iterations++) {
+        auto penalty_function = [&](const numerics::vector_f64& x) -> double {
+            double penalty = 0.0;
+
+            for (const auto& constraint : constraints) {
+                double fi = constraint(x);
+                penalty += step / (-fi);
+            }
+
+            return function(x) + penalty;
+            };
+
+        numerics::vector_f64 gradient = numerics::vector_f64::gradient(penalty_function, x_i, eps);
+        total_probes += 2 * x_i.size();
+
+        numerics::vector_f64 search_point = x_i - gradient * 1.0;
+
+        search_result_n result = fibonacci(penalty_function, x_i, search_point, eps);
+        x_i_1 = result.result;
+        total_probes += result.function_calls;
+
+        step *= 0.5;
+
+        F64 current_accuracy = numerics::vector_f64::distance(x_i_1, x_i);
+
+        if (numerics::vector_f64::distance(x_i_1, x_i) < 2 * eps)
+            break;
+
+        x_i = x_i_1;
+    }
+    return search_result_n(
+        methods_types_n::internal_penalty,          // Вызываемый метод 
+        iterations,                                 // Количество итераций
+        total_probes,                               // Количество вызовов функции
+        numerics::vector_f64::distance(x_i_1, x_i), // Точность
         std::move(x_i_1));                          // Экстремум
 }

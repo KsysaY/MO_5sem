@@ -1,4 +1,4 @@
-#include "lr_1.h"
+ï»¿#include "lr_1.h"
 #include "lr2.h"
 #include <iostream>
 
@@ -16,7 +16,7 @@ int lab1() {
     search_result golden_ratio_result = golden_ratio(my_function, left, right, eps, max_iters);
     std::cout << "Golden Ratio Result:\n" << golden_ratio_result << std::endl;
 
-    search_result fibonacci_result = fibonacci(my_function, left, right, eps );//îôèãåòü, ÷òîáû áûëî îäèíàêîâîå êîëè÷åñòâî ôóíêöèé: eps*2.0
+    search_result fibonacci_result = fibonacci(my_function, left, right, eps );//Ð¾Ñ„Ð¸Ð³ÐµÑ‚ÑŒ, Ñ‡Ñ‚Ð¾Ð±Ñ‹ Ð±Ñ‹Ð»Ð¾ Ð¾Ð´Ð¸Ð½Ð°ÐºÐ¾Ð²Ð¾Ðµ ÐºÐ¾Ð»Ð¸Ñ‡ÐµÑÑ‚Ð²Ð¾ Ñ„ÑƒÐ½ÐºÑ†Ð¸Ð¹: eps*2.0
     std::cout << "Fibonacci Result:\n" << fibonacci_result << std::endl;
 
     return 0;
@@ -64,6 +64,30 @@ int lab3() {
 
     search_result_n newton_raphson_result = newton_raphson(my_function, left, eps, max_iters);
     std::cout << "Newton Raphson Result:\n" << newton_raphson_result << std::endl;
+
+    function_nd function = [](const numerics::vector_f64& args) -> double {
+        return (args[0] - 5) * args[0] + (args[1] - 3) * args[1];
+        };
+
+    std::vector<function_nd> constraints;
+
+    // x â‰¥ 2
+    constraints.push_back([](const numerics::vector_f64& x) -> double {
+        return 2 - x[0];
+        });
+    // y â‰¥ 1  
+    constraints.push_back([](const numerics::vector_f64& x) -> double {
+        return 1 - x[1];
+        });
+    // x + y â‰¤ 7
+    constraints.push_back([](const numerics::vector_f64& x) -> double {
+        return x[0] + x[1] - 7;
+        });
+
+    numerics::vector_f64 start = { 3.0, 2.0 };
+
+    search_result_n internal_result = internal_penalty(function, constraints, start, eps, max_iters);
+    std::cout << "Internal Penalty Result:\n" << internal_result << std::endl;
     
     return 0;
 }
