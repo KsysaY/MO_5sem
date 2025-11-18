@@ -322,7 +322,7 @@ search_result_n newton_raphson(function_nd function, const numerics::vector_f64&
 }
 
 search_result_n internal_penalty(function_nd function, const std::vector<function_nd>& constraints, const numerics::vector_f64& x_start, const F64 eps, const I32 max_iters) {
-    numerics::vector_f64 x_i(x_start), x_i_1, gradient, search_point;
+    numerics::vector_f64 x_i(x_start), x_i_1;
     F64 step = 1.0; 
     UI64 iterations = 0;
     UI64 total_probes = 0;
@@ -337,16 +337,11 @@ search_result_n internal_penalty(function_nd function, const std::vector<functio
             }
 
             return function(x) + penalty;
-            };
+        };
 
-        numerics::vector_f64 gradient = numerics::vector_f64::gradient(penalty_function, x_i, eps);
-        total_probes += 2 * x_i.size();
-
-        numerics::vector_f64 search_point = x_i - gradient * 1.0;
-
-        search_result_n result = fibonacci(penalty_function, x_i, search_point, eps);
-        x_i_1 = result.result;
-        total_probes += result.function_calls;
+        search_result_n line_search_result = gradient_descend(penalty_function, x_i, eps);
+        x_i_1 = line_search_result.result;
+        total_probes += line_search_result.function_calls;
 
         step *= 0.5;
 
@@ -359,6 +354,52 @@ search_result_n internal_penalty(function_nd function, const std::vector<functio
     }
     return search_result_n(
         methods_types_n::internal_penalty,          // Вызываемый метод 
+        iterations,                                 // Количество итераций
+        total_probes,                               // Количество вызовов функции
+        numerics::vector_f64::distance(x_i_1, x_i), // Точность
+        std::move(x_i_1));                          // Экстремум
+}
+
+
+search_result_n external_penalty(function_nd function, const std::vector<function_nd>& constraints, const std::vector<function_nd>& equality_constraints, const numerics::vector_f64& x_start, const F64 eps, const I32 max_iters) {
+    numerics::vector_f64 x_i(x_start), x_i_1;
+    F64 step = 1.0;
+    UI64 iterations = 0;
+    UI64 total_probes = 0;
+
+    for (; iterations < max_iters; iterations++) {
+        auto penalty_function = [&](const numerics::vector_f64& x) -> double {
+            double penalty = 0.0;
+
+            for (const auto& constraint : constraints) {
+                double fi = constraint(x);
+                fi = std::max(0.0, fi);
+                penalty += step * std::pow(fi, 2);
+            }
+
+            for (const auto& constraint : equality_constraints) {
+                double psi = constraint(x);
+                penalty += step * std::pow(psi, 2);
+            }
+
+            return function(x) + penalty;
+        };
+
+        search_result_n line_search_result = gradient_descend(penalty_function, x_i, eps);
+        x_i_1 = line_search_result.result;
+        total_probes += line_search_result.function_calls;
+
+        step *= 0.5;
+
+        F64 current_accuracy = numerics::vector_f64::distance(x_i_1, x_i);
+
+        if (numerics::vector_f64::distance(x_i_1, x_i) < 2 * eps)
+            break;
+
+        x_i = x_i_1;
+    }
+    return search_result_n(
+        methods_types_n::external_penalty,          // Вызываемый метод 
         iterations,                                 // Количество итераций
         total_probes,                               // Количество вызовов функции
         numerics::vector_f64::distance(x_i_1, x_i), // Точность

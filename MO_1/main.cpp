@@ -65,11 +65,8 @@ int lab3() {
     search_result_n newton_raphson_result = newton_raphson(my_function, left, eps, max_iters);
     std::cout << "Newton Raphson Result:\n" << newton_raphson_result << std::endl;
 
-    function_nd function = [](const numerics::vector_f64& args) -> double {
-        return (args[0] - 5) * args[0] + (args[1] - 3) * args[1];
-        };
-
     std::vector<function_nd> constraints;
+    std::vector<function_nd> equality_constraints;
 
     // x ≥ 2
     constraints.push_back([](const numerics::vector_f64& x) -> double {
@@ -83,11 +80,18 @@ int lab3() {
     constraints.push_back([](const numerics::vector_f64& x) -> double {
         return x[0] + x[1] - 7;
         });
+    // x + y = 6
+    equality_constraints.push_back([](const numerics::vector_f64& x) -> double {
+        return x[0] + x[1] - 6; 
+        });
 
     numerics::vector_f64 start = { 3.0, 2.0 };
 
-    search_result_n internal_result = internal_penalty(function, constraints, start, eps, max_iters);
+    search_result_n internal_result = internal_penalty(my_function, constraints, start, eps, max_iters);
     std::cout << "Internal Penalty Result:\n" << internal_result << std::endl;
+
+    search_result_n external_result = external_penalty(my_function, constraints, equality_constraints, start, eps, max_iters);
+    std::cout << "External Penalty Result:\n" << external_result << std::endl;
     
     return 0;
 }
@@ -95,7 +99,7 @@ int lab3() {
 int main()
 {
     //lab1();
-    lab2();
+    //lab2();
     lab3();
     return 0;
 }

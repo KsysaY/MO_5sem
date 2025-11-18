@@ -35,6 +35,7 @@ struct search_result_n {
     //     ,result        (  std::move(res))
     // {}
 };
+
 search_result_n bisect               (function_nd func, const numerics::vector_f64& lhs, const numerics::vector_f64& rhs, const F64 eps = ACCURACY_MIDDLE, const I32 max_iterations = MAX_ITERATIONS);
 search_result_n golden_ratio         (function_nd func, const numerics::vector_f64& lhs, const numerics::vector_f64& rhs, const F64 eps = ACCURACY_MIDDLE, const I32 max_iterations = MAX_ITERATIONS);
 search_result_n fibonacci            (function_nd func, const numerics::vector_f64& lhs, const numerics::vector_f64& rhs, const F64 eps = ACCURACY_MIDDLE);
@@ -43,3 +44,4 @@ search_result_n gradient_descend     (function_nd func, const numerics::vector_f
 search_result_n conj_gradient_descend(function_nd func, const numerics::vector_f64& lhs, const F64 eps = ACCURACY_MIDDLE, const I32 max_iterations = MAX_ITERATIONS);
 search_result_n newton_raphson       (function_nd func, const numerics::vector_f64& lhs, const F64 eps = ACCURACY_MIDDLE, const I32 max_iterations = MAX_ITERATIONS);
 search_result_n internal_penalty     (function_nd func, const std::vector<function_nd>& constraints, const numerics::vector_f64& lhs, const F64 eps = ACCURACY_MIDDLE, const I32 max_iterations = MAX_ITERATIONS);
+search_result_n external_penalty     (function_nd func, const std::vector<function_nd>& constraints, const std::vector<function_nd>& equality_constraints, const numerics::vector_f64& lhs, const F64 eps = ACCURACY_MIDDLE, const I32 max_iterations = MAX_ITERATIONS);
