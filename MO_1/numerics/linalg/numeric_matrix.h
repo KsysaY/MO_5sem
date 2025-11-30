@@ -137,13 +137,13 @@ public:
 	const T& get(const I32 row, const I32 col)const
 	{
 		assert((row >= 0 && row < rows_count()) && "numeric_matrix :: get(i, j) error :: row is out of range...\n");
-		assert((col >= 0 && row < cols_count()) && "numeric_matrix :: get(i, j) error :: col is out of range...\n");
+		assert((col >= 0 && col < cols_count()) && "numeric_matrix :: get(i, j) error :: col is out of range...\n");
 		return unchecked_access(row, col);
 	}
 	T& get(const I32 row, const I32 col)
 	{
 		assert((row >= 0 && row < rows_count()) && "numeric_matrix :: get(i, j) error :: row is out of range...\n");
-		assert((col >= 0 && row < cols_count()) && "numeric_matrix :: get(i, j) error :: col is out of range...\n"); 
+		assert((col >= 0 && col < cols_count()) && "numeric_matrix :: get(i, j) error :: col is out of range...\n"); 
 		return unchecked_access(row, col);
 	}
 

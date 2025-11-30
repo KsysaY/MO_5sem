@@ -26,7 +26,7 @@ simplex_result minimize(bool seek, const numerics::vector_f64& c, const numerics
     UI64 m = A.rows_count(); //строка
     UI64 n = A.cols_count(); //столбец
     UI64 iterations = 0;
-    numerics::vector_f64 res;
+    numerics::vector_f64 res(n);
     F64 optimal_value = 0.0;
     numerics::vector_f64 b_copy(b);
 
@@ -37,7 +37,7 @@ simplex_result minimize(bool seek, const numerics::vector_f64& c, const numerics
     }
 
     //Симплекс-таблица
-    numerics::matrix_f64 table = numerics::matrix_f64::zeros(m + 1, n + m + 1);
+    numerics::matrix_f64 table = numerics::matrix_f64::zeros(m + 1, n + 1);
 
     table(0, 0) = 0.0;
 
@@ -45,11 +45,11 @@ simplex_result minimize(bool seek, const numerics::vector_f64& c, const numerics
         table(0, j + 1) = -c[j];
     }
 
-    for (UI64 i = 0; i < m; ++i) {
+    for (UI64 i = 0; i < m; ++i) { 
         for (UI64 j = 1; j < n; ++j) {
             table(i + 1, j) = A(i, j);
         }
-        table(i + 1, 0) = b[i];
+        table(i + 1, 0) = b_copy[i];
     }
 
     for (iterations = 0; iterations < max_iterations; ++iterations) {
