@@ -144,7 +144,7 @@ search_result_n fibonacci(function_nd function, const numerics::vector_f64& left
     numerics::vector_f64 x_r = lhs + (rhs - lhs) * (fib_1 / fib_2);
     F64 f_l = function(x_l);
     F64 f_r = function(x_r);
-    for (I32 index = iterations; index > 0; index--)
+    for (I32 ind_jex = iterations; ind_jex > 0; ind_jex--)
     {
         fib_t = fib_2 - fib_1;
         fib_2 = fib_1;
@@ -278,7 +278,7 @@ search_result_n conj_gradient_descend(function_nd function, const numerics::vect
         total_probes += 2 * x_i.size();
 
         w = std::pow(gradient_new.magnitude(), 2) / std::pow(gradient_old.magnitude(), 2);
-        gradient_old = gradient_old * w - gradient_new;
+        gradient_new = gradient_old * w - gradient_new;
 
         if (numerics::vector_f64::distance(x_i_1, x_i) < 2 * eps) 
             break;

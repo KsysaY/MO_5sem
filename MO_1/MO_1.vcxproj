@@ -132,11 +132,13 @@
     <ClCompile Include="lr_1.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="MO_1.cpp" />
+    <ClCompile Include="simplex.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="defines.h" />
     <ClInclude Include="lr2.h" />
     <ClInclude Include="lr_1.h" />
+    <ClInclude Include="simplex.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
