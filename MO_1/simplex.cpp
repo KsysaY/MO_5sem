@@ -5,7 +5,7 @@
 
 std::ostream& operator<<(std::ostream& stream, const simplex_result& result) {
 
-    stream << fstring("value:          %ld\n", result.value);
+    stream << fstring("value:          %f\n", result.value);
     stream << fstring("iterations:     %ld\n", result.iterations);
 
     stream << "result: ";
@@ -26,13 +26,16 @@ simplex_result minimize(bool seek, const numerics::vector_f64& c, const numerics
     UI64 m = A.rows_count(); //строка
     UI64 n = A.cols_count(); //столбец
     UI64 iterations = 0;
-    numerics::vector_f64 res(n);
+    numerics::vector_f64 res(c.size(), 0.0);
+    numerics::vector_f64 basis(c.size());
     F64 optimal_value = 0.0;
-    numerics::vector_f64 b_copy(b);
+    numerics::vector_f64 c_copy(c);
+    UI64 ind_i = 0;
+    UI64 ind_j = 0;
 
     if (!seek) {
-        for (UI64 i = 0; i < b.size(); ++i) {
-            b_copy[i] = -b[i];
+        for (UI64 i = 0; i < c.size(); ++i) {
+            c_copy[i] = -c[i];
         }
     }
 
@@ -42,33 +45,40 @@ simplex_result minimize(bool seek, const numerics::vector_f64& c, const numerics
     table(0, 0) = 0.0;
 
     for (UI64 j = 0; j < n; ++j) {
-        table(0, j + 1) = -c[j];
+        table(0, j + 1) = c_copy[j];
     }
 
     for (UI64 i = 0; i < m; ++i) { 
-        for (UI64 j = 1; j < n; ++j) {
-            table(i + 1, j) = A(i, j);
+        table(i + 1, 0) = b[i];
+
+        for (UI64 j = 0; j < n; ++j) {
+            table(i + 1, j + 1) = A(i, j);
         }
-        table(i + 1, 0) = b_copy[i];
     }
 
     for (iterations = 0; iterations < max_iterations; ++iterations) {
 
-        UI64 ind_j = 0;
         F64 min_coeff = 0.0;
+        bool optimal = true;
 
-        for (UI64 j = 0; j < n ; ++j) {
-            if (table(0, j + 1) > min_coeff) {
-                min_coeff = table(0, j + 1);
-                ind_j = j + 1;
+        for (UI64 j = 1; j <= n ; ++j) {
+            if (table(0, j) > 1e-10) {
+                optimal = false;
+                if (table(0, j) > min_coeff) {
+                    min_coeff = table(0, j);
+                    ind_j = j;
+                }
             }
+        }
+
+        if (optimal) {
+            break;
         }
 
         if (ind_j == 0) {
             break;
         }
 
-        UI64 ind_i = m + 1;
         F64 min_ratio = std::numeric_limits<F64>::max();
 
         for (UI64 i = 1; i <= m; ++i) {
@@ -81,9 +91,17 @@ simplex_result minimize(bool seek, const numerics::vector_f64& c, const numerics
             }
         }
 
-        res[ind_j] = table(0, ind_j);
+        basis[ind_j - 1] = ind_i;
 
-        table(ind_i, ind_j) = 1 / table(ind_i, ind_j);
+        for (UI64 i = 0; i <= m; ++i) {
+            if (i != ind_i) {
+                for (UI64 j = 0; j <= n; ++j) {
+                    if (j != ind_j) {
+                        table(i, j) = table(i, j) - table(i, ind_j) * table(ind_i, j) / table(ind_i, ind_j);
+                    }
+                }
+            }
+        }
 
         for (UI64 i = 0; i <= m; ++i) {
             if (i != ind_i) {
@@ -93,21 +111,39 @@ simplex_result minimize(bool seek, const numerics::vector_f64& c, const numerics
 
         for (UI64 j = 0; j < n; ++j) {
             if (j != ind_j) {
-                table(ind_i, j) = -table(ind_i, j) / table(ind_i, ind_j);
+                table(ind_i, j) = table(ind_i, j) / table(ind_i, ind_j);
             }
         }
 
-        for (UI64 i = 0; i < m; ++i) {
-            for (UI64 j = 1; j < n; ++j) {
-                if (i != ind_i or j != ind_j) {
-                    table(i, j) = table(i, j) - (table(i, ind_j) * table(ind_i, j) / table(ind_i, ind_j));
-                }
+        table(ind_i, ind_j) = 1 / table(ind_i, ind_j);
+
+        //for (UI64 i = 0; i <= m; ++i) {
+        //    // Метка строки
+        //    if (i == 0) {
+        //        std::cout << std::setw(10) << "Z";
+        //    }
+        //    else {
+        //        std::cout << std::setw(10) << "x" << (n + i);
+        //    }
+
+        //    // Значения в строке
+        //    for (UI64 j = 0; j <= n; ++j) {
+        //        std::cout << std::setw(12) << std::setprecision(4) << std::fixed << table(i, j);
+        //    }
+        //    std::cout << "\n";
+        //}      
+    }
+
+    if (seek)
+        optimal_value = -table(0, 0);
+
+    for (UI64 j = 0; j < c.size(); ++j) {
+        for (UI64 i = 1; i <= m; ++i) {
+            if (basis[j] == i) {
+                res[j] = table(i, 0);
+                std::cout << res[j];
             }
         }
-        if (!seek)
-            optimal_value = table(0, 0);
-        else
-            optimal_value = -table(0, 0);
     }
 
     return simplex_result(optimal_value, res, iterations);
