@@ -115,33 +115,18 @@ simplex_result minimize(bool seek, const numerics::vector_f64& c, const numerics
             }
         }
 
-        table(ind_i, ind_j) = 1 / table(ind_i, ind_j);
-
-        //for (UI64 i = 0; i <= m; ++i) {
-        //    // Метка строки
-        //    if (i == 0) {
-        //        std::cout << std::setw(10) << "Z";
-        //    }
-        //    else {
-        //        std::cout << std::setw(10) << "x" << (n + i);
-        //    }
-
-        //    // Значения в строке
-        //    for (UI64 j = 0; j <= n; ++j) {
-        //        std::cout << std::setw(12) << std::setprecision(4) << std::fixed << table(i, j);
-        //    }
-        //    std::cout << "\n";
-        //}      
+        table(ind_i, ind_j) = 1 / table(ind_i, ind_j);  
     }
 
     if (seek)
         optimal_value = -table(0, 0);
+    else
+        optimal_value = table(0, 0);
 
     for (UI64 j = 0; j < c.size(); ++j) {
         for (UI64 i = 1; i <= m; ++i) {
             if (basis[j] == i) {
                 res[j] = table(i, 0);
-                std::cout << res[j];
             }
         }
     }

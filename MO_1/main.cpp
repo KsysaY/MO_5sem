@@ -98,12 +98,19 @@ int lab3() {
 }
 
 int lab4() {
-    numerics::vector_f64 c = { 2.0, -1.0 };  //2x - y
-    bool seek = true;
-    numerics::vector_f64 b = { 12.0, 8.0, 5.0, 1.0 };
+    //numerics::vector_f64 c = { 2.0, -1.0 };  //2x - y
+    //bool seek = true;
+    //numerics::vector_f64 b = { 12.0, 8.0, 5.0, 1.0 };
+    //int max_iters = 100;
+
+    //numerics::matrix_f64 A({ -1, 3, 1, 1, 1, 0, 1, -2}, 4, 2);
+
+    numerics::vector_f64 c = { 1.0, -1.0 };  //2x - y
+    bool seek = false;
+    numerics::vector_f64 b = { 2.0, 9.0, 27.0, 3.0 };
     int max_iters = 100;
 
-    numerics::matrix_f64 A({ -1, 3, 1, 1, 1, 0, 1, -2}, 4, 2);
+    numerics::matrix_f64 A({ -3, 1, -1, 2, 4, 1, 1, -1 }, 4, 2);
 
     simplex_result sx_result = minimize(seek, c, A, b, max_iters);
     std::cout << "Simplex Result:\n" << sx_result << std::endl;
