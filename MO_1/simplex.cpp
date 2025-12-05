@@ -21,7 +21,7 @@ std::ostream& operator<<(std::ostream& stream, const simplex_result& result) {
     return stream;
 }
 
-numerics::matrix_f64 reference_plan(const numerics::vector_f64& c, const numerics::matrix_f64& A, const numerics::vector_f64& b, const I32 max_iterations, UI64& iterations) {
+numerics::matrix_f64 reference_plan(const numerics::vector_f64& c, const numerics::matrix_f64& A, const numerics::vector_f64& b, const I32 max_iterations, UI64& iterations, numerics::vector_f64& basis) {
     UI64 m = A.rows_count(); //строка
     UI64 n = A.cols_count(); //столбец
     numerics::vector_f64 ksi(b.size());
@@ -100,6 +100,10 @@ numerics::matrix_f64 reference_plan(const numerics::vector_f64& c, const numeric
             }
         }
 
+        if (ind_j <= c.size())
+            basis[ind_j - 1] = ind_i - 1;
+
+
         for (UI64 i = 0; i < m + 2 ; ++i) {
             if (i != ind_i) {
                 for (UI64 j = 0; j < n + 1 + b.size(); ++j) {
@@ -124,8 +128,25 @@ numerics::matrix_f64 reference_plan(const numerics::vector_f64& c, const numeric
 
         table(ind_i, ind_j) = 1 / table(ind_i, ind_j);
     }
-    // удалить лишние строки + добавить базис + проверить интерации
 
+    UI64 new_col = 0;
+    for (UI64 j = 0; j < n + 1 + b.size(); ++j) {
+        bool flag = false;
+
+        for (UI64 k = 0; k < ksi.size(); ++k) {
+            if (ksi[k] == j) {
+                flag = true;
+                break;
+            }
+        }
+
+        if (!flag) {
+            for (UI64 i = 1; i <= m + 1; ++i) {
+                new_table(i - 1, new_col) = table(i, j);
+            }
+            new_col++; 
+        }
+    }
 
     return new_table;
 }
@@ -135,7 +156,7 @@ simplex_result minimize(bool seek, const numerics::vector_f64& c, const numerics
     UI64 m = A.rows_count(); //строка
     UI64 n = A.cols_count(); //столбец
     UI64 iterations = 0;
-    numerics::vector_f64 res(c.size(), 0.0);
+    numerics::vector_f64 res(c.size());
     numerics::vector_f64 basis(c.size());
     F64 value = 0.0;
     numerics::vector_f64 c_copy(c);
@@ -160,7 +181,7 @@ simplex_result minimize(bool seek, const numerics::vector_f64& c, const numerics
     }
 
     if (!neg) {
-        table = reference_plan(c_copy, A, b, max_iterations, iterations);
+        table = reference_plan(c_copy, A, b, max_iterations, iterations, basis);
     }
     else {
         table(0, 0) = 0.0;
@@ -178,7 +199,7 @@ simplex_result minimize(bool seek, const numerics::vector_f64& c, const numerics
         }
     }
 
-    for (iterations = 0; iterations < max_iterations; ++iterations) {
+    for (iterations; iterations < max_iterations; ++iterations) {
 
         F64 min_coeff = 0.0;
         bool optimal = true;
@@ -213,6 +234,25 @@ simplex_result minimize(bool seek, const numerics::vector_f64& c, const numerics
             }
         }
 
+        if (!neg) {
+            UI64 remove = 0;
+            bool need_to_remove = false;
+
+            for (UI64 i = 0; i < basis.size(); ++i) {
+                if (abs(basis[i] - ind_i) < 1e-10) {
+                    if (i != ind_j - 1) {
+                        remove = i;
+                        need_to_remove = true;
+                    }
+                    break;
+                }
+            }
+
+            if (need_to_remove) {
+                basis[remove] = 0.0;
+            }
+        }
+
         basis[ind_j - 1] = ind_i;
 
         for (UI64 i = 0; i <= m; ++i) {
@@ -238,6 +278,7 @@ simplex_result minimize(bool seek, const numerics::vector_f64& c, const numerics
         }
 
         table(ind_i, ind_j) = 1 / table(ind_i, ind_j);  
+
     }
 
     if (seek)
