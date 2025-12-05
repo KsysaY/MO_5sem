@@ -250,10 +250,11 @@ simplex_result minimize(bool seek, const numerics::vector_f64& c, const numerics
 
             if (need_to_remove) {
                 basis[remove] = 0.0;
+                basis[ind_j - 1] = ind_i;
             }
         }
-
-        basis[ind_j - 1] = ind_i;
+        else
+            basis[ind_j - 1] = ind_i;
 
         for (UI64 i = 0; i <= m; ++i) {
             if (i != ind_i) {
